@@ -1,6 +1,7 @@
 
 import Link from "next/link";
 
+
 const NavLinks = async () => {
   const res = await fetch(
     "https://openapi.programming-hero.com/api/bazardor/categories"
@@ -22,7 +23,11 @@ const NavLinks = async () => {
           <span>{n.nameBn}</span>
         </Link>
       ))}
+    <div>
+      
     </div>
+    </div>
+      
   );
 };
 

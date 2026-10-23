@@ -1,10 +1,10 @@
 import Image from 'next/image';
-import React from 'react';
+
 
 const HeroSection = () => {
     const date = new Date().toLocaleDateString ("bn-BD", {dateStyle : "full" });
     return (
-        <section className="mx-auto max-w-7xl px-4 py-3">
+        <section className="relative mx-auto w-full max-w-7xl px-4 py-6">
       <div className="flex min-h-[180px] items-center justify-between overflow-hidden rounded-2xl border border-gray-200 bg-[#f8fbf8] px-6 py-5 md:px-10">
 
         {/* Left Content */}

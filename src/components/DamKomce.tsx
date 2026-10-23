@@ -28,6 +28,7 @@ const DamKomce = () => {
         const response = await fetch(
           "https://api.abcz.workers.dev/api/bazardor/products"
         );
+      
 
         if (!response.ok) {
           throw new Error("পণ্যের তথ্য পাওয়া যায়নি");
