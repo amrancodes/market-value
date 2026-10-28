@@ -5,6 +5,10 @@ import "./globals.css";
 
 import Header from "@/components/Header";
 import { Toaster } from "react-hot-toast";
+import Marquee from "@/components/Marquee";
+import { Suspense } from 'react';
+import Footer from "@/components/Footer";
+
 
 const font = Hind_Siliguri({
   subsets: ["bengali", "latin"],
@@ -26,20 +30,15 @@ export default function RootLayout({
   return (
     <html lang="bn" data-theme="light">
       <body className={`${font.className} min-h-screen flex flex-col antialiased`}>
+       <Suspense fallback={<p>loading..</p>}>
         <Header />
-
+        </Suspense>
+        <Marquee/>
         <main className="flex-1">
           {children}
         </main>
-
-        <footer className="mt-auto">
-          <div className="flex flex-col md:flex-row py-4 px-4 gap-3 md:gap-5 justify-between text-center">
-            <h1>বাজার দর — প্রয়োজনীয় পণ্যের দাম এক নজরে।</h1>
-            <p>
-              সকল দাম সম্ভাব্য; বাজার অবস্থার ওপর নির্ভর করে পরিবর্তিত হয়।
-            </p>
-          </div>
-        </footer>
+       
+        <Footer/>
 
         <Toaster position="top-center" />
       </body>

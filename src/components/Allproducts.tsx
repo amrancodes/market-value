@@ -1,4 +1,7 @@
 
+
+import Link from "next/link";
+
 interface Product {
   id: number;
   slug: string;
@@ -54,9 +57,10 @@ export default async function AllProducts() {
           const percent = Math.abs(product.change?.pct ?? 0);
 
           return (
-            <div
+            <Link
               key={product.id}
-              className="rounded-xl border border-gray-200 bg-[#f9fbf9] p-3 transition-shadow hover:shadow-md"
+              href={`/products/${product.slug}`}
+              className="block rounded-xl border border-gray-200 bg-[#f9fbf9] p-3 transition-shadow hover:shadow-md"
             >
               {/* Product Info */}
               <div className="flex items-center gap-3">
@@ -103,10 +107,14 @@ export default async function AllProducts() {
                   {isUp ? "▲" : isDown ? "▼" : "—"}{" "}
                   {percent.toLocaleString("bn-BD", {
                     maximumFractionDigits: 1,
-                  })}%
+                  })}
+                  %
                 </span>
               </div>
-            </div>
+
+              
+             
+            </Link>
           );
         })}
       </div>
