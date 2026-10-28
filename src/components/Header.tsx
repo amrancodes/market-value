@@ -7,6 +7,7 @@ import { useState } from "react";
 import Image from "next/image";
 import Link from "next/link";
 
+
 import { useSession, signOut } from "@/lib/client";
 
 const Header = () => {
@@ -158,7 +159,7 @@ const Header = () => {
                   </Link>
 
                   <Link
-                    href="/signup"
+                    href="/signout"
                     className="rounded-xl bg-green-600 px-4 py-2 text-xs font-bold text-white shadow-sm transition-colors hover:bg-teal-700"
                   >
                     সাইন আপ
