@@ -30,13 +30,13 @@ const HeroSection = () => {
 
         {/* Right Image */}
         <div className="hidden shrink-0 md:block">
-          <Image
-            src="/bazar-hero.png"
-            alt=""
-            width={180}
-            height={150}
-            className="h-[140px] w-[180px] "
-          />
+         <Image
+  src="/bazar-hero.png"
+  alt="বাজার দর"
+  width={500}
+  height={300}
+  className="h-auto w-full"
+/>
         </div>
 
       </div>

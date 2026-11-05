@@ -1,25 +1,29 @@
+
+
 "use client";
 
-import { useState } from "react";
-import type { FormEvent } from "react";
+import { useState, type FormEvent } from "react";
 import Link from "next/link";
 import { useRouter } from "next/navigation";
 import { authClient } from "@/lib/client";
+import { FaGithub } from "react-icons/fa";
 
 export default function SignUpPage() {
   const router = useRouter();
 
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState("");
   const [name, setName] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [confirmPassword, setConfirmPassword] = useState("");
-  const [acceptedTerms, setAcceptedTerms] = useState(false);
+  const [agree, setAgree] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState("");
+  const [success, setSuccess] = useState("");
 
-  const handleSubmit = async (e: FormEvent<HTMLFormElement>) => {
+  const handleSignUp = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError("");
+    setSuccess("");
 
     if (password.length < 8) {
       setError("পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।");
@@ -31,190 +35,198 @@ export default function SignUpPage() {
       return;
     }
 
-    if (!acceptedTerms) {
-      setError("অ্যাকাউন্ট তৈরি করতে শর্তাবলী মেনে নাও।");
+    if (!agree) {
+      setError("অ্যাকাউন্ট তৈরি করতে শর্তাবলিতে সম্মতি দাও।");
       return;
     }
 
     setLoading(true);
 
     try {
-      const { data, error } = await authClient.signUp.email({
+      const { error: signUpError } = await authClient.signUp.email({
         name,
         email,
         password,
         callbackURL: "/",
       });
 
-      if (error) {
-        setError(error.message || "অ্যাকাউন্ট তৈরি করা যায়নি।");
+      if (signUpError) {
+        setError(signUpError.message || "অ্যাকাউন্ট তৈরি করা যায়নি।");
         return;
       }
 
-      if (data) {
-        router.push("/");
-        router.refresh();
-      }
-    } catch (err) {
-      console.error("Sign up error:", err);
-      setError("অ্যাকাউন্ট তৈরি করা যায়নি। আবার চেষ্টা করো।");
+      setSuccess("অ্যাকাউন্ট তৈরি হয়েছে! হোম পেজে নেওয়া হচ্ছে।");
+      router.push("/");
+      router.refresh();
+    } catch {
+      setError("সমস্যা হয়েছে। আবার চেষ্টা করো।");
     } finally {
       setLoading(false);
     }
   };
 
-  const handleSocialSignUp = async (
-    provider: "google" | "github"
-  ) => {
+  const handleSocialLogin = async (provider: "google" | "github") => {
     setError("");
     setLoading(true);
 
     try {
-      const { error } = await authClient.signIn.social({
+      const { error: socialError } = await authClient.signIn.social({
         provider,
         callbackURL: "/",
       });
 
-      if (error) {
-        setError(error.message || "সোশ্যাল সাইন আপ করা যায়নি।");
-        setLoading(false);
+      if (socialError) {
+        setError(socialError.message || "সোশ্যাল লগইন করা যায়নি।");
       }
-    } catch (err) {
-      console.error("Social sign up error:", err);
-      setError("সোশ্যাল সাইন আপ করা যায়নি।");
+    } catch {
+      setError("লগইন করা যায়নি। সেটিংস পরীক্ষা করে আবার চেষ্টা করো।");
+    } finally {
       setLoading(false);
     }
   };
 
   return (
-    <main className="flex min-h-[calc(100vh-160px)] items-center justify-center bg-[#f0f7f2] px-4 py-8">
-      <div className="w-full max-w-md">
+    <main className="min-h-screen bg-[#f0f6f1] px-4 py-8 sm:py-12">
+      <div className="mx-auto w-full max-w-md">
         {/* Heading */}
         <div className="mb-5 text-center">
-       
+         
 
-          <h1 className="text-2xl font-bold text-gray-900">
+          <h1 className="mt-4 text-2xl font-bold text-gray-900">
             অ্যাকাউন্ট তৈরি করুন
           </h1>
 
-          <p className="mt-2 text-sm text-gray-500">
-            নিজের বাজার মূল্য ট্র্যাক করুন এবং সর্বশেষ দাম দেখুন।
+          <p className="mt-2 text-sm leading-6 text-gray-500">
+            বিনা খরচে সাইন আপ করে সব বিস্তারিত দাম দেখুন।
           </p>
         </div>
 
-        {/* Form Card */}
-        <div className="rounded-2xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
-          <form onSubmit={handleSubmit} className="space-y-3">
+        {/* Signup Card */}
+        <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+          <form onSubmit={handleSignUp} className="space-y-4">
+            {/* Name */}
             <div>
               <label
                 htmlFor="name"
-                className="mb-1 block text-sm font-medium text-gray-800"
+                className="mb-1.5 block text-sm font-medium text-gray-800"
               >
                 নাম
               </label>
 
               <input
                 id="name"
-                name="name"
                 type="text"
+                placeholder="যেমন: রহিম উদ্দিন"
                 value={name}
                 onChange={(e) => setName(e.target.value)}
-                placeholder="যেমন: রহিম উদ্দিন"
                 autoComplete="name"
                 required
-                className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
               />
             </div>
 
+            {/* Email */}
             <div>
               <label
                 htmlFor="email"
-                className="mb-1 block text-sm font-medium text-gray-800"
+                className="mb-1.5 block text-sm font-medium text-gray-800"
               >
                 ইমেইল
               </label>
 
               <input
                 id="email"
-                name="email"
                 type="email"
+                placeholder="you@example.com"
                 value={email}
                 onChange={(e) => setEmail(e.target.value)}
-                placeholder="you@example.com"
                 autoComplete="email"
                 required
-                className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
               />
             </div>
 
+            {/* Password */}
             <div>
               <label
                 htmlFor="password"
-                className="mb-1 block text-sm font-medium text-gray-800"
+                className="mb-1.5 block text-sm font-medium text-gray-800"
               >
                 পাসওয়ার্ড
               </label>
 
               <input
                 id="password"
-                name="password"
                 type="password"
+                placeholder="কমপক্ষে ৮ অক্ষর"
                 value={password}
                 onChange={(e) => setPassword(e.target.value)}
-                placeholder="কমপক্ষে ৮ অক্ষর"
                 autoComplete="new-password"
                 minLength={8}
                 required
-                className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
               />
             </div>
 
+            {/* Confirm Password */}
             <div>
               <label
                 htmlFor="confirmPassword"
-                className="mb-1 block text-sm font-medium text-gray-800"
+                className="mb-1.5 block text-sm font-medium text-gray-800"
               >
                 পাসওয়ার্ড নিশ্চিত করুন
               </label>
 
               <input
                 id="confirmPassword"
-                name="confirmPassword"
                 type="password"
+                placeholder="আবার লিখুন"
                 value={confirmPassword}
                 onChange={(e) => setConfirmPassword(e.target.value)}
-                placeholder="আবার লিখুন"
                 autoComplete="new-password"
                 required
-                className="w-full rounded-lg border border-gray-200 px-3 py-2.5 text-sm outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
+                className="w-full rounded-lg border border-gray-200 bg-white px-3 py-2.5 text-sm text-gray-900 outline-none transition focus:border-green-600 focus:ring-2 focus:ring-green-100"
               />
             </div>
 
-            <label className="flex cursor-pointer items-start gap-2 pt-1 text-xs text-gray-600">
+            {/* Terms */}
+            <label className="flex cursor-pointer items-start gap-2 text-sm text-gray-600">
               <input
                 type="checkbox"
-                checked={acceptedTerms}
-                onChange={(e) => setAcceptedTerms(e.target.checked)}
-                className="mt-0.5 accent-green-700"
+                checked={agree}
+                onChange={(e) => setAgree(e.target.checked)}
+                className="mt-1 accent-green-700"
               />
               <span>
-                আমি ব্যবহারের শর্তাবলী ও প্রাইভেসি পলিসি মেনে নিচ্ছি।
+                আমি শর্তাবলি ও গোপনীয়তা নীতিতে সম্মত।
               </span>
             </label>
 
+            {/* Error Message */}
             {error && (
               <p
                 role="alert"
-                className="rounded-lg bg-red-50 p-3 text-sm text-red-600"
+                className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-600"
               >
                 {error}
               </p>
             )}
 
+            {/* Success Message */}
+            {success && (
+              <p
+                role="status"
+                className="rounded-lg bg-green-50 px-3 py-2 text-sm text-green-700"
+              >
+                {success}
+              </p>
+            )}
+
+            {/* Submit Button */}
             <button
               type="submit"
               disabled={loading}
-              className="w-full rounded-lg bg-green-700 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60"
+              className="w-full rounded-lg bg-green-700 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
               {loading ? "অ্যাকাউন্ট তৈরি হচ্ছে..." : "অ্যাকাউন্ট তৈরি করুন"}
             </button>
@@ -227,45 +239,46 @@ export default function SignUpPage() {
             <div className="h-px flex-1 bg-gray-200" />
           </div>
 
-          {/* Social Sign Up */}
-          <div className="grid grid-cols-2 gap-2">
+          {/* Social Login */}
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
             <button
               type="button"
+              onClick={() => handleSocialLogin("google")}
               disabled={loading}
-              onClick={() => handleSocialSignUp("google")}
-              className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-2 py-3 text-xs font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-60"
+              className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-2 py-2.5 text-xs font-medium text-gray-800 transition hover:bg-gray-50 disabled:opacity-60"
             >
-              <span className="font-bold text-red-500">G</span>
+              <span className="font-bold text-base text-red-500">G</span>
               Google দিয়ে চালিয়ে যান
             </button>
 
             <button
-              type="button"
-              disabled={loading}
-              onClick={() => handleSocialSignUp("github")}
-              className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-2 py-3 text-xs font-medium text-gray-700 transition hover:bg-gray-50 disabled:opacity-60"
-            >
-              <span className="font-bold text-gray-900">●</span>
-              GitHub দিয়ে চালিয়ে যান
-            </button>
+  type="button"
+  onClick={() => handleSocialLogin("github")}
+  disabled={loading}
+  className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-2 py-2.5 text-xs font-medium text-gray-800 transition hover:bg-gray-50 disabled:opacity-60"
+>
+  <FaGithub size={20} />
+  GitHub দিয়ে চালিয়ে যান
+</button>
           </div>
 
           {/* Sign In Link */}
-          <p className="mt-4 text-center text-sm text-gray-600">
+          <p className="mt-5 text-center text-sm text-gray-600">
             অ্যাকাউন্ট আছে?{" "}
             <Link
               href="/signin"
-              className="font-semibold text-green-700 hover:underline"
+              className="font-medium text-green-700 hover:underline"
             >
               সাইন ইন করুন
             </Link>
           </p>
         </div>
 
+        {/* Back to Home */}
         <div className="mt-5 text-center">
           <Link
             href="/"
-            className="text-sm text-gray-500 hover:text-green-700"
+            className="text-sm text-gray-500 transition hover:text-green-700"
           >
             ← হোম পেজে ফিরে যান
           </Link>
@@ -274,3 +287,5 @@ export default function SignUpPage() {
     </main>
   );
 }
+
+

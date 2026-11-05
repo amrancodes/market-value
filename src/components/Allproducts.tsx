@@ -1,6 +1,11 @@
 
 
-import Link from "next/link";
+
+"use client";
+
+import { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "@/lib/client";
 
 interface Product {
   id: number;
@@ -18,23 +23,82 @@ interface Product {
   };
 }
 
-export default async function AllProducts() {
-  const res = await fetch(
-    "https://api.abcz.workers.dev/api/bazardor/products",
-    {
-      cache: "no-store",
-    }
-  );
+export default function AllProducts() {
+  const router = useRouter();
+  const { data: session, isPending } = useSession();
 
-  if (!res.ok) {
-    throw new Error("Failed to fetch products");
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState("");
+
+  // Fetch All Products
+  useEffect(() => {
+    const fetchProducts = async () => {
+      try {
+        const res = await fetch(
+          "https://api.abcz.workers.dev/api/bazardor/products",
+          {
+            cache: "no-store",
+          }
+        );
+
+        if (!res.ok) {
+          throw new Error("Failed to fetch products");
+        }
+
+        const result = await res.json();
+
+        const productData: Product[] = Array.isArray(result)
+          ? result
+          : result.data ?? [];
+
+        setProducts(productData);
+      } catch {
+        setError("পণ্যের তথ্য লোড করা যায়নি। আবার চেষ্টা করুন।");
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProducts();
+  }, []);
+
+  // Product Card Click
+  const handleProductClick = (slug: string) => {
+    if (isPending) return;
+
+    if (!session?.user) {
+      const callbackURL = `/products/${slug}`;
+
+      router.push(
+        `/signin?callbackURL=${encodeURIComponent(callbackURL)}`
+      );
+
+      return;
+    }
+
+    router.push(`/products/${slug}`);
+  };
+
+  // Loading
+  if (loading || isPending) {
+    return (
+      <section className="mx-auto max-w-7xl px-4 py-10">
+        <div className="flex min-h-40 items-center justify-center">
+          <div className="h-8 w-8 animate-spin rounded-full border-4 border-green-700 border-t-transparent" />
+        </div>
+      </section>
+    );
   }
 
-  const result = await res.json();
-
-  const products: Product[] = Array.isArray(result)
-    ? result
-    : result.data ?? [];
+  // Error
+  if (error) {
+    return (
+      <section className="mx-auto max-w-7xl px-4 py-10 text-center">
+        <p className="text-sm text-red-600">{error}</p>
+      </section>
+    );
+  }
 
   return (
     <section className="mx-auto max-w-7xl px-4 py-6">
@@ -57,10 +121,11 @@ export default async function AllProducts() {
           const percent = Math.abs(product.change?.pct ?? 0);
 
           return (
-            <Link
+            <button
               key={product.id}
-              href={`/products/${product.slug}`}
-              className="block rounded-xl border border-gray-200 bg-[#f9fbf9] p-3 transition-shadow hover:shadow-md"
+              type="button"
+              onClick={() => handleProductClick(product.slug)}
+              className="block w-full rounded-xl border border-gray-200 bg-[#f9fbf9] p-3 text-left transition-all hover:-translate-y-1 hover:border-green-300 hover:shadow-md"
             >
               {/* Product Info */}
               <div className="flex items-center gap-3">
@@ -112,9 +177,13 @@ export default async function AllProducts() {
                 </span>
               </div>
 
-              
-             
-            </Link>
+              {/* Details */}
+              <div className="mt-3 border-t border-gray-100 pt-2 text-right">
+                <span className="text-xs font-semibold text-green-700">
+                  বিস্তারিত দেখুন →
+                </span>
+              </div>
+            </button>
           );
         })}
       </div>

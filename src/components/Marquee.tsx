@@ -36,7 +36,7 @@ const Marquee = async () => {
 
   return (
     <div className="bg-white text-black">
-      <MarqueeText direction="right" duration={13}>
+      <MarqueeText direction="right" duration={30}>
         {data.map((headline) => (
           <span
             key={headline.id}
