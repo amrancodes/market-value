@@ -1,7 +1,10 @@
 
+
 "use client";
 
 import React, { useEffect, useState } from "react";
+import { useRouter } from "next/navigation";
+import { useSession } from "@/lib/client";
 
 interface Product {
   id: number;
@@ -18,23 +21,34 @@ interface Product {
 }
 
 const DamKomce = () => {
+  const router = useRouter();
+
+  // Better Auth session check
+  const { data: session, isPending } = useSession();
+
   const [products, setProducts] = useState<Product[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState("");
 
+  // Fetch products from API
   useEffect(() => {
     const fetchProducts = async () => {
       try {
         const response = await fetch(
-          "https://api.abcz.workers.dev/api/bazardor/products"
+          "https://api.abcz.workers.dev/api/bazardor/products",
+          { cache: "no-store" }
         );
-      
 
         if (!response.ok) {
           throw new Error("পণ্যের তথ্য পাওয়া যায়নি");
         }
 
-        const data: Product[] = await response.json();
+        const result = await response.json();
+
+        const data: Product[] = Array.isArray(result)
+          ? result
+          : result.data || [];
+
         setProducts(data);
       } catch (err) {
         setError(
@@ -50,6 +64,29 @@ const DamKomce = () => {
     fetchProducts();
   }, []);
 
+  // Handle product card click
+  const handleProductClick = (slug: string) => {
+    if (isPending) return;
+
+    // তোমার প্রজেক্টের Product Details route
+    const detailsUrl = `/producDetails/${slug}`;
+
+    // User is not logged in
+    if (!session?.user) {
+      alert("পণ্যের বিস্তারিত দেখতে আগে লগইন করুন।");
+
+      router.push(
+        `/signin?callbackURL=${encodeURIComponent(detailsUrl)}`
+      );
+
+      return;
+    }
+
+    // User is logged in
+    router.push(detailsUrl);
+  };
+
+  // Loading state
   if (loading) {
     return (
       <section className="mx-auto max-w-7xl px-4 py-5">
@@ -60,6 +97,7 @@ const DamKomce = () => {
     );
   }
 
+  // Error state
   if (error) {
     return (
       <section className="mx-auto max-w-7xl px-4 py-5">
@@ -70,12 +108,13 @@ const DamKomce = () => {
 
   // শুধু দাম কমেছে এমন পণ্য
   const fallingProducts = products
-  .filter((product) => product.change.dir === "down")
-  .slice(0, 6);
+    .filter((product) => product.change?.dir === "down")
+    .slice(0, 6);
 
   return (
     <section className="mx-auto max-w-7xl bg-[#f0f5f1] px-4 py-5">
-      {/* Heading */}
+
+      {/* Section Heading */}
       <div className="mb-3 flex items-center gap-2">
         <span className="text-xs text-green-600">▼</span>
 
@@ -84,7 +123,7 @@ const DamKomce = () => {
         </h2>
       </div>
 
-      {/* Cards */}
+      {/* Product Cards */}
       {fallingProducts.length === 0 ? (
         <p className="text-sm text-gray-500">
           আজ দাম কমেছে এমন পণ্য পাওয়া যায়নি।
@@ -94,9 +133,23 @@ const DamKomce = () => {
           {fallingProducts.map((product) => (
             <article
               key={product.id}
-              className="min-w-0 rounded-xl border border-[#e1e9e2] bg-[#fbfdfb] p-3 transition-shadow hover:shadow-md"
+              onClick={() => handleProductClick(product.slug)}
+              role="button"
+              tabIndex={isPending ? -1 : 0}
+              aria-disabled={isPending}
+              onKeyDown={(e) => {
+                if (e.key === "Enter" || e.key === " ") {
+                  e.preventDefault();
+                  handleProductClick(product.slug);
+                }
+              }}
+              className={`min-w-0 rounded-xl border border-[#e1e9e2] bg-[#fbfdfb] p-3 transition-all hover:shadow-md focus:outline-none focus:ring-2 focus:ring-green-600 ${
+                isPending
+                  ? "cursor-wait opacity-70"
+                  : "cursor-pointer hover:-translate-y-1"
+              }`}
             >
-              {/* Product name and icon */}
+              {/* Product Image and Name */}
               <div className="flex items-center gap-2">
                 <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#f0f5f0] text-xl">
                   {product.image}
@@ -121,7 +174,7 @@ const DamKomce = () => {
                 </div>
               </div>
 
-              {/* Price and percentage */}
+              {/* Today's Price and Percentage */}
               <div className="mt-3 flex items-end justify-between gap-2">
                 <div>
                   <p className="text-[10px] text-gray-500">

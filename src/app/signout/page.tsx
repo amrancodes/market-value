@@ -20,10 +20,17 @@ export default function SignUpPage() {
   const [error, setError] = useState("");
   const [success, setSuccess] = useState("");
 
+  // Email Signup
   const handleSignUp = async (e: FormEvent<HTMLFormElement>) => {
     e.preventDefault();
+
     setError("");
     setSuccess("");
+
+    if (!name.trim()) {
+      setError("আপনার নাম লিখুন।");
+      return;
+    }
 
     if (password.length < 8) {
       setError("পাসওয়ার্ড কমপক্ষে ৮ অক্ষরের হতে হবে।");
@@ -43,21 +50,26 @@ export default function SignUpPage() {
     setLoading(true);
 
     try {
-      const { error: signUpError } = await authClient.signUp.email({
-        name,
-        email,
-        password,
-        callbackURL: "/",
-      });
+      const { error: signUpError } =
+        await authClient.signUp.email({
+          name: name.trim(),
+          email: email.trim(),
+          password,
+          callbackURL: "/",
+        });
 
       if (signUpError) {
-        setError(signUpError.message || "অ্যাকাউন্ট তৈরি করা যায়নি।");
+        setError(
+          signUpError.message || "অ্যাকাউন্ট তৈরি করা যায়নি।"
+        );
         return;
       }
 
       setSuccess("অ্যাকাউন্ট তৈরি হয়েছে! হোম পেজে নেওয়া হচ্ছে।");
-      router.push("/");
+
+      router.replace("/");
       router.refresh();
+
     } catch {
       setError("সমস্যা হয়েছে। আবার চেষ্টা করো।");
     } finally {
@@ -65,33 +77,41 @@ export default function SignUpPage() {
     }
   };
 
-  const handleSocialLogin = async (provider: "google" | "github") => {
+  // Google / GitHub Login
+  const handleSocialLogin = async (
+    provider: "google" | "github"
+  ) => {
     setError("");
     setLoading(true);
 
     try {
-      const { error: socialError } = await authClient.signIn.social({
-        provider,
-        callbackURL: "/",
-      });
+      const { error: socialError } =
+        await authClient.signIn.social({
+          provider,
+          callbackURL: "/",
+        });
 
       if (socialError) {
-        setError(socialError.message || "সোশ্যাল লগইন করা যায়নি।");
+        setError(
+          socialError.message || "সোশ্যাল লগইন করা যায়নি।"
+        );
+        setLoading(false);
       }
     } catch {
-      setError("লগইন করা যায়নি। সেটিংস পরীক্ষা করে আবার চেষ্টা করো।");
-    } finally {
+      setError(
+        "লগইন করা যায়নি। সেটিংস পরীক্ষা করে আবার চেষ্টা করো।"
+      );
       setLoading(false);
     }
   };
 
   return (
     <main className="min-h-screen bg-[#f0f6f1] px-4 py-8 sm:py-12">
+
       <div className="mx-auto w-full max-w-md">
+
         {/* Heading */}
         <div className="mb-5 text-center">
-         
-
           <h1 className="mt-4 text-2xl font-bold text-gray-900">
             অ্যাকাউন্ট তৈরি করুন
           </h1>
@@ -103,7 +123,9 @@ export default function SignUpPage() {
 
         {/* Signup Card */}
         <div className="rounded-xl border border-gray-200 bg-white p-5 shadow-sm sm:p-6">
+
           <form onSubmit={handleSignUp} className="space-y-4">
+
             {/* Name */}
             <div>
               <label
@@ -197,12 +219,13 @@ export default function SignUpPage() {
                 onChange={(e) => setAgree(e.target.checked)}
                 className="mt-1 accent-green-700"
               />
+
               <span>
                 আমি শর্তাবলি ও গোপনীয়তা নীতিতে সম্মত।
               </span>
             </label>
 
-            {/* Error Message */}
+            {/* Error */}
             {error && (
               <p
                 role="alert"
@@ -212,7 +235,7 @@ export default function SignUpPage() {
               </p>
             )}
 
-            {/* Success Message */}
+            {/* Success */}
             {success && (
               <p
                 role="status"
@@ -222,49 +245,65 @@ export default function SignUpPage() {
               </p>
             )}
 
-            {/* Submit Button */}
+            {/* Submit */}
             <button
               type="submit"
               disabled={loading}
               className="w-full rounded-lg bg-green-700 px-4 py-3 text-sm font-semibold text-white shadow-sm transition hover:bg-green-800 disabled:cursor-not-allowed disabled:opacity-60"
             >
-              {loading ? "অ্যাকাউন্ট তৈরি হচ্ছে..." : "অ্যাকাউন্ট তৈরি করুন"}
+              {loading
+                ? "অ্যাকাউন্ট তৈরি হচ্ছে..."
+                : "অ্যাকাউন্ট তৈরি করুন"}
             </button>
+
           </form>
 
           {/* Divider */}
           <div className="my-4 flex items-center gap-3">
             <div className="h-px flex-1 bg-gray-200" />
-            <span className="text-xs text-gray-500">অথবা</span>
+
+            <span className="text-xs text-gray-500">
+              অথবা
+            </span>
+
             <div className="h-px flex-1 bg-gray-200" />
           </div>
 
           {/* Social Login */}
           <div className="grid grid-cols-1 gap-2 sm:grid-cols-2">
+
+            {/* Google */}
             <button
               type="button"
               onClick={() => handleSocialLogin("google")}
               disabled={loading}
               className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-2 py-2.5 text-xs font-medium text-gray-800 transition hover:bg-gray-50 disabled:opacity-60"
             >
-              <span className="font-bold text-base text-red-500">G</span>
+              <span className="text-base font-bold text-red-500">
+                G
+              </span>
+
               Google দিয়ে চালিয়ে যান
             </button>
 
+            {/* GitHub */}
             <button
-  type="button"
-  onClick={() => handleSocialLogin("github")}
-  disabled={loading}
-  className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-2 py-2.5 text-xs font-medium text-gray-800 transition hover:bg-gray-50 disabled:opacity-60"
->
-  <FaGithub size={20} />
-  GitHub দিয়ে চালিয়ে যান
-</button>
+              type="button"
+              onClick={() => handleSocialLogin("github")}
+              disabled={loading}
+              className="flex items-center justify-center gap-2 rounded-lg border border-gray-200 px-2 py-2.5 text-xs font-medium text-gray-800 transition hover:bg-gray-50 disabled:opacity-60"
+            >
+              <FaGithub size={20} />
+
+              GitHub দিয়ে চালিয়ে যান
+            </button>
+
           </div>
 
           {/* Sign In Link */}
           <p className="mt-5 text-center text-sm text-gray-600">
             অ্যাকাউন্ট আছে?{" "}
+
             <Link
               href="/signin"
               className="font-medium text-green-700 hover:underline"
@@ -272,6 +311,7 @@ export default function SignUpPage() {
               সাইন ইন করুন
             </Link>
           </p>
+
         </div>
 
         {/* Back to Home */}
@@ -283,6 +323,7 @@ export default function SignUpPage() {
             ← হোম পেজে ফিরে যান
           </Link>
         </div>
+
       </div>
     </main>
   );

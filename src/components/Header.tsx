@@ -117,14 +117,14 @@ const Header = () => {
                           </p>
                         </div>
 
-                        <Link
-                          href="/profile"
-                          onClick={() => setDropdownOpen(false)}
-                          className="flex items-center gap-2 px-4 py-2.5 font-semibold text-slate-700 transition-colors hover:bg-teal-50 hover:text-teal-700"
-                        >
-                          <span>👤</span>
-                          প্রোফাইল ড্যাশবোর্ড
-                        </Link>
+                       <Link
+  href="/profile"
+  onClick={() => setDropdownOpen(false)}
+  className="flex items-center gap-2 px-4 py-2.5 font-semibold text-slate-700 hover:bg-teal-50 hover:text-teal-700"
+>
+  <span>👤</span>
+   আমার প্রোফাইল
+</Link>
 
                         <Link
                           href="/profile/update"

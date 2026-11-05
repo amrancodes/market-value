@@ -68,7 +68,7 @@ const DamBarce = () => {
     // Session loading থাকলে click কাজ করবে না
     if (isPending) return;
 
-    const detailsUrl = `/productDetails/${slug}`;
+    const detailsUrl = `/producDetails/${slug}`;
 
     // User is not logged in
     if (!session?.user) {
