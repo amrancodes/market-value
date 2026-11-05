@@ -74,22 +74,22 @@ export default function AllProducts({
       )
     : products;
 
-  // Product Card Click
-  const handleProductClick = (slug: string) => {
-    if (isPending) return;
+ // Product Card Click
+const handleProductClick = (slug: string) => {
+  if (isPending) return;
 
-    if (!session?.user) {
-      const callbackURL = `/products/${slug}`;
+  const detailsUrl = `/producDetails/${slug}`;
 
-      router.push(
-        `/signin?callbackURL=${encodeURIComponent(callbackURL)}`
-      );
+  if (!session?.user) {
+    router.push(
+      `/signin?callbackURL=${encodeURIComponent(detailsUrl)}`
+    );
 
-      return;
-    }
+    return;
+  }
 
-    router.push(`/products/${slug}`);
-  };
+  router.push(detailsUrl);
+};
 
   // Loading
   if (loading || isPending) {
