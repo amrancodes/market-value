@@ -1,6 +1,4 @@
 
-
-
 "use client";
 
 import { useEffect, useState } from "react";
@@ -23,7 +21,13 @@ interface Product {
   };
 }
 
-export default function AllProducts() {
+interface AllProductsProps {
+  categorySlug?: string;
+}
+
+export default function AllProducts({
+  categorySlug,
+}: AllProductsProps) {
   const router = useRouter();
   const { data: session, isPending } = useSession();
 
@@ -63,6 +67,13 @@ export default function AllProducts() {
     fetchProducts();
   }, []);
 
+  // Filter Products By Category
+  const filteredProducts = categorySlug
+    ? products.filter(
+        (product) => product.category === categorySlug
+      )
+    : products;
+
   // Product Card Click
   const handleProductClick = (slug: string) => {
     if (isPending) return;
@@ -100,93 +111,126 @@ export default function AllProducts() {
     );
   }
 
+  // Category Name
+  const categoryName =
+    filteredProducts[0]?.categoryNameBn || "ক্যাটাগরির পণ্য";
+
   return (
     <section className="mx-auto max-w-7xl px-4 py-6">
+
       {/* Heading */}
-      <div className="mb-5 flex items-center justify-between">
+      <div className="mb-5 flex items-center justify-between gap-3">
+
         <h2 className="text-xl font-bold text-gray-800">
-          সকল পণ্যের বাজার দর
+          {categorySlug
+            ? categoryName
+            : "সকল পণ্যের বাজার দর"}
         </h2>
 
-        <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700">
-          {products.length} টি পণ্য
+        <span className="shrink-0 rounded-full bg-green-100 px-3 py-1 text-sm font-semibold text-green-700">
+          {filteredProducts.length.toLocaleString("bn-BD")} টি পণ্য
         </span>
+
       </div>
 
-      {/* All Product Cards */}
-      <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
-        {products.map((product) => {
-          const isUp = product.change?.dir === "up";
-          const isDown = product.change?.dir === "down";
-          const percent = Math.abs(product.change?.pct ?? 0);
+      {/* No Products */}
+      {filteredProducts.length === 0 ? (
+        <div className="rounded-xl border border-gray-200 bg-gray-50 py-16 text-center">
+          <p className="text-gray-500">
+            এই ক্যাটাগরিতে কোনো পণ্য পাওয়া যায়নি।
+          </p>
+        </div>
+      ) : (
 
-          return (
-            <button
-              key={product.id}
-              type="button"
-              onClick={() => handleProductClick(product.slug)}
-              className="block w-full rounded-xl border border-gray-200 bg-[#f9fbf9] p-3 text-left transition-all hover:-translate-y-1 hover:border-green-300 hover:shadow-md"
-            >
-              {/* Product Info */}
-              <div className="flex items-center gap-3">
-                <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#f0f5f0] text-xl">
-                  {product.image}
+        /* Product Cards */
+        <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-3">
+
+          {filteredProducts.map((product) => {
+
+            const isUp = product.change?.dir === "up";
+            const isDown = product.change?.dir === "down";
+            const percent = Math.abs(product.change?.pct ?? 0);
+
+            return (
+              <button
+                key={product.id}
+                type="button"
+                onClick={() => handleProductClick(product.slug)}
+                className="block w-full rounded-xl border border-gray-200 bg-[#f9fbf9] p-3 text-left transition-all hover:-translate-y-1 hover:border-green-300 hover:shadow-md"
+              >
+
+                {/* Product Info */}
+                <div className="flex items-center gap-3">
+
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-[#f0f5f0] text-xl">
+                    {product.image}
+                  </div>
+
+                  <div className="min-w-0 flex-1">
+
+                    <h3 className="truncate text-sm font-bold text-gray-800">
+                      {product.nameBn}
+                    </h3>
+
+                    <p className="text-xs text-gray-500">
+                      প্রতি {product.unit}
+                    </p>
+
+                  </div>
+
                 </div>
 
-                <div className="min-w-0 flex-1">
-                  <h3 className="truncate text-sm font-bold text-gray-800">
-                    {product.nameBn}
-                  </h3>
+                {/* Price */}
+                <div className="mt-3 flex items-end justify-between gap-2">
 
-                  <p className="text-xs text-gray-500">
-                    প্রতি {product.unit}
-                  </p>
+                  <div>
+
+                    <p className="text-xs text-gray-500">
+                      আজকের দাম
+                    </p>
+
+                    <p className="text-base font-bold text-gray-900">
+                      {product.today}{" "}
+                      <span className="text-xs font-normal">
+                        টাকা
+                      </span>
+                    </p>
+
+                  </div>
+
+                  {/* Price Change */}
+                  <span
+                    className={`shrink-0 rounded-full px-2 py-1 text-xs font-semibold ${
+                      isUp
+                        ? "bg-red-50 text-red-600"
+                        : isDown
+                          ? "bg-green-50 text-green-700"
+                          : "bg-gray-100 text-gray-600"
+                    }`}
+                  >
+
+                    {isUp ? "▲" : isDown ? "▼" : "—"}{" "}
+
+                    {percent.toLocaleString("bn-BD", {
+                      maximumFractionDigits: 1,
+                    })}
+
+                    %
+
+                  </span>
+
                 </div>
-              </div>
 
-              {/* Price */}
-              <div className="mt-3 flex items-end justify-between gap-2">
-                <div>
-                  <p className="text-xs text-gray-500">
-                    আজকের দাম
-                  </p>
+              </button>
+            );
+          })}
 
-                  <p className="text-base font-bold text-gray-900">
-                    {product.today}{" "}
-                    <span className="text-xs font-normal">
-                      টাকা
-                    </span>
-                  </p>
-                </div>
+        </div>
+      )}
 
-                {/* Price Change */}
-                <span
-                  className={`shrink-0 rounded-full px-2 py-1 text-xs font-semibold ${
-                    isUp
-                      ? "bg-red-50 text-red-600"
-                      : isDown
-                        ? "bg-green-50 text-green-700"
-                        : "bg-gray-100 text-gray-600"
-                  }`}
-                >
-                  {isUp ? "▲" : isDown ? "▼" : "—"}{" "}
-                  {percent.toLocaleString("bn-BD", {
-                    maximumFractionDigits: 1,
-                  })}
-                  %
-                </span>
-              </div>
-
-              {/* Details */}
-              <div className="mt-3 border-t border-gray-100 pt-2 text-right">
-                <span className="text-xs font-semibold text-green-700">
-                  বিস্তারিত দেখুন →
-                </span>
-              </div>
-            </button>
-          );
-        })}
-      </div>
     </section>
   );
 }
+
+
+
